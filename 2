@@ -1,0 +1,134 @@
+import React from 'react';
+import { View, Text, Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+const HomeScreen = () => {
+  const navigation = useNavigation();
+
+  return (
+    <View>
+      <Text>Manage your orders easily!</Text>
+      <Button title="Order List" onPress={() => navigation.navigate('OrdersList')} />
+      <Button title="Add New Order" onPress={() => navigation.navigate('AddOrder')} />
+    </View>
+  );
+};
+
+export default HomeScreen;
+
+import React, { useEffect, useState } from 'react';
+import { View, FlatList, Button, Text } from 'react-native';
+import axios from 'axios';
+
+const OrdersListScreen = ({ navigation }) => {
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    axios.get('https://jsonplaceholder.typicode.com/users')
+      .then(response => setOrders(response.data));
+  }, []);
+
+  return (
+    <View>
+      <FlatList
+        data={orders}
+        renderItem={({ item }) => (
+          <View>
+            <Text>{item.name}</Text>
+            <Text>{item.phone}</Text>
+            <Text>Status: Pending</Text>
+            <Button title="Edit" onPress={() => navigation.navigate('EditOrder', { id: item.id })} />
+          </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+      />
+    </View>
+  );
+};
+
+export default OrdersListScreen;
+
+import React, { useState } from 'react';
+import { View, TextInput, Button } from 'react-native';
+
+const EditOrderScreen = ({ route, navigation }) => {
+  const { id } = route.params;
+  const [order, setOrder] = useState({ name: '', phone: '', status: 'Pending' });
+
+  const handleSave = () => {
+    // Save the edited order (e.g., make a PUT request)
+    navigation.goBack();
+  };
+
+  return (
+    <View>
+      <TextInput placeholder="Client Name" value={order.name} onChangeText={(text) => setOrder({ ...order, name: text })} />
+      <TextInput placeholder="Phone" value={order.phone} onChangeText={(text) => setOrder({ ...order, phone: text })} />
+      <TextInput placeholder="Status" value={order.status} onChangeText={(text) => setOrder({ ...order, status: text })} />
+      <Button title="Save" onPress={handleSave} />
+    </View>
+  );
+};
+
+export default EditOrderScreen;
+
+import React, { useState } from 'react';
+import { View, TextInput, Button } from 'react-native';
+import axios from 'axios';
+
+const AddOrderScreen = ({ navigation }) => {
+  const [order, setOrder] = useState({ name: '', phone: '', status: 'Pending' });
+
+  const handleAdd = () => {
+    axios.post('https://jsonplaceholder.typicode.com/users', order)
+      .then(response => {
+        navigation.navigate('OrdersList');
+      });
+  };
+
+  return (
+    <View>
+      <TextInput placeholder="Client Name" value={order.name} onChangeText={(text) => setOrder({ ...order, name: text })} />
+      <TextInput placeholder="Phone" value={order.phone} onChangeText={(text) => setOrder({ ...order, phone: text })} />
+      <TextInput placeholder="Status" value={order.status} onChangeText={(text) => setOrder({ ...order, status: text })} />
+      <Button title="Add Order" onPress={handleAdd} />
+    </View>
+  );
+};
+
+export default AddOrderScreen;
+
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const AppNavigator = () => (
+  <Tab.Navigator>
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Orders" component={OrdersListScreen} />
+    <Tab.Screen name="AddOrder" component={AddOrderScreen} />
+  </Tab.Navigator>
+);
+
+const StackNavigator = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="Home" component={HomeScreen} />
+    <Stack.Screen name="Categories" component={CategoriesScreen} />
+    <Stack.Screen name="Products" component={ProductsScreen} />
+    <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+    <Stack.Screen name="OrdersList" component={OrdersListScreen} />
+    <Stack.Screen name="EditOrder" component={EditOrderScreen} />
+    <Stack.Screen name="AddOrder" component={AddOrderScreen} />
+  </Stack.Navigator>
+);
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <StackNavigator />
+    </NavigationContainer>
+  );
+}
+
